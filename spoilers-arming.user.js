@@ -4,7 +4,6 @@
 // @namespace GEFS-Plugins
 // @match http://www.gefs-online.com/gefs.php*
 // @match http://gefs-online.com/gefs.php*
-// @match http://127.0.0.1:3000/gefs.php*
 // @run-at document-end
 // @version 0.1.2
 // @grant none
@@ -20,7 +19,6 @@ var spoilersAircrafts = { "a380": true
 			, "164": true
 			, "167": true
 			, "168": true
-			, "aircraft": true
 };
 
 var spoilersArmTimer = setInterval(armSpoilers, 1500);
@@ -78,8 +76,8 @@ $('<div>')
 				$('<button>')
 					.addClass('btn')
 					.attr('type','button')
-                    .css('height','30px')
-                    .css('width','30px')
+                    			.css('height','30px')
+                    			.css('width','30px')
 					.attr('id', 'spoilers-arming')
 			)
 	).appendTo('.gefs-f-standard');

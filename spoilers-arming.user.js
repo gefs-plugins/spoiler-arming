@@ -13,14 +13,14 @@
 var armed = false;
 var enabled = true;
 var spoilersAircrafts = { "a380": true 
-						, "md11": true
+			, "md11": true
                         , "156": true
-						, "161": true
-						, "162": true
-						, "164": true
-						, "167": true
-						, "168": true
-						, "aircraft": true
+			, "161": true
+			, "162": true
+			, "164": true
+			, "167": true
+			, "168": true
+			, "aircraft": true
 };
 
 var spoilersArmTimer = setInterval(armSpoilers, 1500);

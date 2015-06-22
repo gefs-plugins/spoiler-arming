@@ -4,16 +4,24 @@
 // @namespace GEFS-Plugins
 // @match http://www.gefs-online.com/gefs.php*
 // @match http://gefs-online.com/gefs.php*
+// @match http://127.0.0.1:3000/gefs.php*
 // @run-at document-end
-// @version 0.1.1
+// @version 0.1.2
 // @grant none
 // ==/UserScript==
 
 var armed = false;
 var enabled = true;
-var spoilersAircrafts = {"a380": true, "md11": true, "67": true, "69": true, 
-						"70": true, "84": true, "88": true, "89": true, 
-						"114": true, "115": true, "156": true};
+var spoilersAircrafts = { "a380": true 
+						, "md11": true
+                        , "156": true
+						, "161": true
+						, "162": true
+						, "164": true
+						, "167": true
+						, "168": true
+						, "aircraft": true
+};
 
 var spoilersArmTimer = setInterval(armSpoilers, 1500);
 function armSpoilers() {
@@ -34,13 +42,13 @@ function armSpoilers() {
 function update() {
 	if (!enabled) {
 		enabled = true;
-		$('#spoilers-arming').removeClass('btn btn-danger').addClass('btn').text('Unarmed');
+		$('#spoilers-arming').removeClass('btn btn-danger').addClass('btn');
 	}
 	else {
 		if (armed)
-			$('#spoilers-arming').removeClass('btn').addClass('btn btn-info').text('Armed');
+			$('#spoilers-arming').removeClass('btn').addClass('btn btn-success');
 		else 
-			$('#spoilers-arming').removeClass('btn btn-info').addClass('btn').text('Unarmed');
+			$('#spoilers-arming').removeClass('btn btn-success').addClass('btn');
 	}
 }
 
@@ -49,12 +57,10 @@ function disable() {
 	enabled = false;
 	if (!armed) $('#spoilers-arming')
 		.removeClass('btn')
-		.addClass('btn btn-danger')
-		.text('Disabled');
+		.addClass('btn btn-danger');
 	if (armed) $('#spoilers-arming')
-		.removeClass('btn btn-info')
-		.addClass('btn btn-danger')
-		.text('Disabled');
+		.removeClass('btn btn-success')
+		.addClass('btn btn-danger');
 	armed = false;
 }
 
@@ -71,14 +77,13 @@ $('<div>')
 					.text('Spoilers'),
 				$('<button>')
 					.addClass('btn')
-					.css('height','30px')
-					.css('width','80px')
 					.attr('type','button')
+                    .css('height','30px')
+                    .css('width','30px')
 					.attr('id', 'spoilers-arming')
-					.text('Unarmed')
 			)
 	).appendTo('.gefs-f-standard');
-	
+
 // Event "click"
 $('#spoilers-arming').click (function() {
 	if (enabled) {

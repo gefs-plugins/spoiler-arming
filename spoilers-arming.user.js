@@ -13,12 +13,16 @@ var armed = false;
 var enabled = true;
 var spoilersAircrafts = { "a380": true 
 			, "md11": true
-                        , "156": true
-			, "161": true
-			, "162": true
-			, "164": true
-			, "167": true
-			, "168": true
+                        , "156": true // B788
+			, "161": true // B77W
+			, "162": true // B737
+			, "164": true // B753
+			, "166": true // E190
+			, "167": true // B788
+			, "170": true // FLR04SA (aircraft name to be updated)
+			, "171": true // LRX Grand Overdose (aircraft name to be updated)
+			, "172": true // B742
+			, "183": true // FLR06TA (aircraft name to be updated)
 };
 
 var spoilersArmTimer = setInterval(armSpoilers, 1500);

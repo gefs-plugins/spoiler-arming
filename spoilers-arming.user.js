@@ -20,9 +20,9 @@ var spoilersAircrafts = { "a380": true
 			, "166": true // E190
 			, "167": true // B788
 			, "170": true // FLR04SA (aircraft name to be updated)
-			, "171": true // LRX Grand Overdose (aircraft name to be updated)
 			, "172": true // B742
-			, "183": true // FLR06TA (aircraft name to be updated)
+			, "183": true // A332
+			, "187": true // GXA03FI (aircraft name to be updated)
 };
 
 var spoilersArmTimer = setInterval(armSpoilers, 1500);

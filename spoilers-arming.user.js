@@ -119,6 +119,9 @@ $(document).keydown(function(event) {
 		$('#spoilers-arming').click();
 });
 
+/**
+ * Resets the timer for spoilers arming
+ */
 var oldLoad = Aircraft.prototype.load;
 Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
 	var oldParts = ges.aircraft.object3d._children;

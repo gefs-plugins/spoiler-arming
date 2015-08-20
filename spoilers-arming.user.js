@@ -23,24 +23,28 @@ var targetAlt = 4000;
  */
 var spoilersTimer = setInterval(armSpoilers, 1500);
 function armSpoilers() {
-	var instruments = ges.aircraft.setup.instruments || undefined;
-	var hasSpoilers = instruments && instruments.spoilers !== undefined;
-	var AGL = ges.aircraft.animationValue.altitude - ges.groundElevation * metersToFeet || 0;
-	
-	if (hasSpoilers) {
-		update();
-		if (armed) {
-			if (ges.aircraft.groundContact && ges.aircraft.animationValue.airbrakesPosition === 0) {
-				controls.setters.setAirbrakes.set();
-				armed = false;
-				update();
+	if (window.ges && ges.aircraft && ges.aircraft.setup && ges.aircraft.setup.instruments) {
+		var hasSpoilers = ges.aircraft.setup.instruments.spoilers !== undefined; 
+		var AGL = (ges.aircraft.animationValue.altitude || 0) - (ges.groundElevation || 0) * metersToFeet;
+
+		if (hasSpoilers) {
+			update();
+			if (armed) {
+				if (ges.aircraft.groundContact && (ges.aircraft.animationValue.airbrakesPosition || 0) === 0) {
+					controls.setters.setAirbrakes.set();
+					armed = false;
+					update();
+				}
 			}
+			
+			clearInterval(spoilersTimer);
+			if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
+			else spoilersTimer = setInterval(armSpoilers, 30000);	
+		} else {
+			disable();
+			clearInterval(spoilersTimer);
 		}
-	} else disable();
-	
-	clearInterval(spoilersTimer);
-	if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
-	else spoilersTimer = setInterval(armSpoilers, 30000);
+	}
 }
 
 /**
@@ -50,12 +54,18 @@ function armSpoilers() {
 function update() {
 	if (!enabled) {
 		enabled = true;
-		$('#spoilers-arming').removeClass('btn-danger').addClass('btn-default');
+		$('#spoilers-arming')
+			.removeClass('btn-danger')
+			.addClass('btn-default');
 	} else {
 		if (armed)
-			$('#spoilers-arming').removeClass('btn-default').addClass('btn-success');
-		else 
-			$('#spoilers-arming').removeClass('btn-success').addClass('btn-default');
+			$('#spoilers-arming')
+			.removeClass('btn-default')
+			.addClass('btn-success');
+		else
+			$('#spoilers-arming')
+			.removeClass('btn-success')
+			.addClass('btn-default');
 	}
 }
 
@@ -76,37 +86,37 @@ function disable() {
 /**
  * Spoilers arming UI
  */
-var spoilersArmUI = 
-$('<div>')
+var spoilersArmUI =
+	$('<div>')
 	.addClass('setup-section')
-	.css('padding-bottom','0px')
+	.css('padding-bottom', '0px')
 	.append(
 		$('<div>')
-			.addClass('input-prepend input-append')
-			.css('margin-bottom','4px')
-			.append(
-				$('<span>')
-					.addClass('add-on')
-					.text('Spoilers')
-			, 	$('<button>')
-					.addClass('btn btn-default')
-					.attr('type','button')
-                    .css('height','30px')
-                   	.css('width','30px')
-					.attr('id', 'spoilers-arming')
-			)
+		.addClass('input-prepend input-append')
+		.css('margin-bottom', '4px')
+		.append(
+			$('<span>')
+			.addClass('add-on')
+			.text('Spoilers')
+			, $('<button>')
+			.addClass('btn btn-default')
+			.attr('type', 'button')
+			.css('height', '30px')
+			.css('width', '30px')
+			.attr('id', 'spoilers-arming')
+		)
 	).appendTo('.gefs-f-standard');
 
 /**
  * Checks for "click" on the spoilers arming button
  */
-$('#spoilers-arming').click(function() {
+$('#spoilers-arming').click(function () {
 	if (enabled) {
 		if (!ges.aircraft.groundContact) {
 			if (!armed) armed = true;
 			else armed = false;
-		}
-		else armed = false;
+		} else armed = false;
+		
 		update();
 	}
 });
@@ -114,22 +124,30 @@ $('#spoilers-arming').click(function() {
 /**
  * Checks for keydown "\" to set spoilers
  */
-$(document).keydown(function(event) {
+$(document).keydown(function (event) {
 	if (event.which === 220 || event.keyCode === 220) // The "\" key
 		$('#spoilers-arming').click();
 });
 
+
 /**
- * Resets the timer for spoilers arming
+ * Checks for availability on aircraft load
  */
-var oldLoad = Aircraft.prototype.load;
-Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
-	var oldParts = ges.aircraft.object3d._children;
-	oldLoad.call(this, aircraftName, coordinates, bJustReload);
-	var timer = setInterval(function() {
-		if (oldParts !== ges.aircraft.object3d._children) {
-			clearInterval(timer);
-			armSpoilers();
-		}
-	},16);
-};
+var prototypeTimer = setInterval(function () {
+	if (ges.aircraft.object3d) {
+		clearInterval(prototypeTimer);
+		
+		// Redefines the load() function under Aircraft
+		var oldLoad = Aircraft.prototype.load;
+		Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
+			var oldParts = ges.aircraft.object3d._children;
+			oldLoad.call(this, aircraftName, coordinates, bJustReload);
+			var timer = setInterval(function () {
+				if (oldParts !== ges.aircraft.object3d._children) {
+					clearInterval(timer);
+					armSpoilers();
+				}
+			}, 16);
+		};
+	}
+}, 16);

@@ -23,8 +23,14 @@ var targetAlt = 4000;
  */
 var spoilersTimer = setInterval(armSpoilers, 1500);
 function armSpoilers() {
+	
+	// If an aircraft has completed loading
 	if (window.ges && ges.aircraft && ges.aircraft.setup && ges.aircraft.setup.instruments) {
+		
+		// If this aircraft is eligible for spoiler arming
 		var hasSpoilers = ges.aircraft.setup.instruments.spoilers !== undefined; 
+		
+		// The current "At Ground Level" of the plane
 		var AGL = (ges.aircraft.animationValue.altitude || 0) - (ges.groundElevation || 0) * metersToFeet;
 
 		if (hasSpoilers) {
@@ -36,14 +42,10 @@ function armSpoilers() {
 					update();
 				}
 			}
-			
 			clearInterval(spoilersTimer);
 			if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
 			else spoilersTimer = setInterval(armSpoilers, 30000);	
-		} else {
-			disable();
-			clearInterval(spoilersTimer);
-		}
+		} else disable();
 	}
 }
 
@@ -81,6 +83,7 @@ function disable() {
 		.removeClass('btn-success')
 		.addClass('btn-danger');
 	armed = false;
+	clearInterval(spoilersTimer);
 }
 
 /**
@@ -131,17 +134,27 @@ $(document).keydown(function (event) {
 
 
 /**
- * Checks for availability on aircraft load
+ * Redefines load function of Aircraft so that it 
+ * checks for availability on aircraft load
  */
 var prototypeTimer = setInterval(function () {
+	
+	// If an Aircraft object is created 
+	// and the Aircraft object has completed loading
 	if (ges.aircraft.object3d) {
 		clearInterval(prototypeTimer);
 		
 		// Redefines the load() function under Aircraft
 		var oldLoad = Aircraft.prototype.load;
 		Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
+			// Obtains the old aircraft parts {Object} before loading
 			var oldParts = ges.aircraft.object3d._children;
+			
+			// Calls the original function to load an aircraft
 			oldLoad.call(this, aircraftName, coordinates, bJustReload);
+			
+			// Checks if the old parts refer to a different object compared with the current parts
+			// It's crucial to set on a timer because it takes time for the models to load completely
 			var timer = setInterval(function () {
 				if (oldParts !== ges.aircraft.object3d._children) {
 					clearInterval(timer);

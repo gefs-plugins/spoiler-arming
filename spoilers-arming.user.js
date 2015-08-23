@@ -141,7 +141,7 @@ var prototypeTimer = setInterval(function () {
 	
 	// If an Aircraft object is created 
 	// and the Aircraft object has completed loading
-	if (ges.aircraft.object3d) {
+	if (ges.aircraft && ges.aircraft.object3d) {
 		clearInterval(prototypeTimer);
 		
 		// Redefines the load() function under Aircraft

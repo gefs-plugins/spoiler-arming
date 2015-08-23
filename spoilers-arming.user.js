@@ -17,7 +17,7 @@
 			clearInterval(timer);
 			fn();
 		}
-	});
+	}, 4);
 })(function () {
 	// If spoilers are armed
 	var armed = false;

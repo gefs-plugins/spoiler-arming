@@ -21,19 +21,12 @@
 			clearInterval(timer);
 			initArm();
 		}
-	}, 4);
+	}, 16);
 })(function () {
-	// If spoilers are armed
-	var armed = false;
-
-	// If spoilers are eligible to be armed
-	var enabled = true;
-
-	// The AGL altitude which the timer will update faster
-	var targetAlt = 4000;
-
-	// The timer to check for groundContact
-	var spoilersTimer;
+	var armed = false;		// If spoilers are armed
+	var enabled = true;		// If spoilers are eligible to be armed
+	var targetAlt = 4000;	// The AGL altitude which the timer will update faster
+	var spoilersTimer;		// The timer to check for groundContact
 
 	/**
  	 * Checks for spoilers arming status, set on a timer
@@ -44,6 +37,9 @@
 
 		if (ges.aircraft.groundContact && ges.aircraft.animationValue.airbrakesPosition === 0) {
 			controls.setters.setAirbrakes.set();
+			armed = false;
+			update();
+		} else if (ges.aircraft.groundContact) {
 			armed = false;
 			update();
 		}
@@ -153,12 +149,10 @@
 				armed = false;
 				checkStatus();
 			}
-		}, 4);
+		}, 16);
 	};
 }, function () {
-		/**
-		 * Spoilers arming UI
-		 */
+		// Spoilers arming UI
 		var spoilersArmUI = $('<div>')
 			.addClass('setup-section')
 			.css('padding-bottom', '0px')

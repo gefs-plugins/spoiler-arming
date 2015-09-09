@@ -5,7 +5,7 @@
 // @match http://www.gefs-online.com/gefs.php*
 // @match http://gefs-online.com/gefs.php*
 // @run-at document-end
-// @version 0.1.5
+// @version 0.1.5.patch-1
 // @grant none
 // ==/UserScript==
 
@@ -23,10 +23,10 @@
 		}
 	}, 16);
 })(function () {
-	var armed = false;		// If spoilers are armed
-	var enabled = true;		// If spoilers are eligible to be armed
-	var targetAlt = 4000;	// The AGL altitude which the timer will update faster
-	var spoilersTimer;		// The timer to check for groundContact
+	var armed = false; // If spoilers are armed
+	var enabled = true;	// If spoilers are eligible to be armed
+	var targetAlt = 4000; // The AGL altitude which the timer will update faster
+	var spoilersTimer; // The timer to check for groundContact
 
 	/**
  	 * Checks for spoilers arming status, set on a timer
@@ -38,12 +38,13 @@
 		if (ges.aircraft.groundContact && ges.aircraft.animationValue.airbrakesPosition === 0) {
 			controls.setters.setAirbrakes.set();
 			armed = false;
-			update();
+			checkStatus();
+			return;
 		} else if (ges.aircraft.groundContact) {
 			armed = false;
-			update();
+			checkStatus();
+			return;
 		}
-
 		clearInterval(spoilersTimer);
 		if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
 		else spoilersTimer = setInterval(armSpoilers, 30000);

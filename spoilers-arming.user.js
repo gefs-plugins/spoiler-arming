@@ -9,9 +9,9 @@
 // @grant none
 // ==/UserScript==
 
-(function (initArm, initUI) {
+(function (init, ui) {
 	// Inits UI elements
-	initUI();
+	ui.appendTo('.gefs-f-standard');
 
 	// Checks if the game completes loading
 	// and if all needed objects are created
@@ -19,7 +19,7 @@
 	var timer = setInterval(function () {
 		if (window.ges && ges.aircraft && ges.aircraft.object3d) {
 			clearInterval(timer);
-			initArm();
+			init();
 		}
 	}, 16);
 })(function () {
@@ -76,14 +76,14 @@
 	function update() {
 		if (!enabled) {
 			enabled = true;
-			$('#spoilers-arming')
+			$('.spoilers-arming')
 				.removeClass('btn-danger')
 				.addClass('btn-default');
 		} else {
-			if (armed) $('#spoilers-arming')
+			if (armed) $('.spoilers-arming')
 				.removeClass('btn-default')
 				.addClass('btn-success');
-			else $('#spoilers-arming')
+			else $('.spoilers-arming')
 				.removeClass('btn-success')
 				.addClass('btn-default');
 		}
@@ -94,13 +94,15 @@
 	 */
 	function disable() {
 		enabled = false;
-		if (!armed) $('#spoilers-arming')
-			.removeClass('btn-default')
-			.addClass('btn-danger');
-		if (armed) $('#spoilers-arming')
-			.removeClass('btn-success')
-			.addClass('btn-danger');
 		armed = false;
+		if ($('.spoilers-arming').hasClass('btn-default')) 
+			$('.spoilers-arming')
+				.removeClass('btn-default')
+				.addClass('btn-danger');
+		if ($('.spoilers-arming').hasClass('btn-success')) 
+			$('.spoilers-arming')
+				.removeClass('btn-success')
+				.addClass('btn-danger');
 	}
 
 	/**
@@ -113,7 +115,7 @@
 	/**
 	 * Checks for "click" on the spoilers arming button
  	 */
-	$('#spoilers-arming').click(function () {
+	$('.spoilers-arming').click(function () {
 		if (enabled) {
 			if (!ges.aircraft.groundContact) armed = !armed;
 			else armed = false;
@@ -126,7 +128,7 @@
 	 */
 	$(document).keydown(function (event) {
 		if (event.which === 220 || event.keyCode === 220)
-			$('#spoilers-arming').click();
+			$('.spoilers-arming').click();
 	});
 
 	/**
@@ -152,23 +154,24 @@
 			}
 		}, 16);
 	};
-}, function () {
-		// Spoilers arming UI
-		var spoilersArmUI = $('<div>')
-			.addClass('setup-section')
-			.css('padding-bottom', '0px')
-			.append($('<div>')
-				.addClass('input-prepend input-append')
-				.css('margin-bottom', '4px')
-				.append($('<span>')
-					.addClass('add-on')
-					.text('Spoilers'),
-				$('<button>')
-					.addClass('btn btn-default')
-					.attr('type', 'button')
-					.css('height', '30px')
-					.css('width', '30px')
-					.attr('id', 'spoilers-arming')
-				)
-			).appendTo('.gefs-f-standard');
-});
+},	
+	/**
+ 	 * Spoilers arming UI
+	 */
+	$('<div>')
+		.addClass('setup-section')
+		.css('padding-bottom', '0px')
+		.append($('<div>')
+			.addClass('input-prepend input-append')
+			.css('margin-bottom', '4px')
+			.append($('<span>')
+				.addClass('add-on')
+				.text('Spoilers') 
+				,	$('<button>')
+				.addClass('btn btn-default spoilers-arming')
+				.attr('type', 'button')
+				.css('height', '30px')
+				.css('width', '30px')
+			)
+		)
+);

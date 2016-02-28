@@ -2,10 +2,9 @@
 // @name GEFS-Online Spoilers Arming
 // @description This extension (by Harry Xue) allows the user to arm the spoilers before landing.
 // @namespace GEFS-Plugins
-// @match http://www.gefs-online.com/gefs.php*
-// @match http://gefs-online.com/gefs.php*
+// @match http://*.gefs-online.com/gefs.php*
 // @run-at document-end
-// @version 0.1.5.patch-1
+// @version 0.2.0
 // @grant none
 // ==/UserScript==
 
@@ -17,7 +16,7 @@
 	// and if all needed objects are created
 	// Inits arming
 	var timer = setInterval(function () {
-		if (window.ges && ges.aircraft && ges.aircraft.object3d) {
+		if (window.gefs && gefs.aircraft && gefs.aircraft.object3d) {
 			clearInterval(timer);
 			init();
 		}
@@ -33,14 +32,14 @@
  	 */
 	function armSpoilers() {
 		// The current "At Ground Level" of the plane
-		var AGL = ges.aircraft.animationValue.altitude - ges.groundElevation * metersToFeet;
+		var AGL = gefs.aircraft.animationValue.altitude - gefs.groundElevation * metersToFeet;
 
-		if (ges.aircraft.groundContact && ges.aircraft.animationValue.airbrakesPosition === 0) {
+		if (gefs.aircraft.groundContact && gefs.aircraft.animationValue.airbrakesPosition === 0) {
 			controls.setters.setAirbrakes.set();
 			armed = false;
 			checkStatus();
 			return;
-		} else if (ges.aircraft.groundContact) {
+		} else if (gefs.aircraft.groundContact) {
 			armed = false;
 			checkStatus();
 			return;
@@ -117,7 +116,7 @@
  	 */
 	$('.spoilers-arming').click(function () {
 		if (enabled) {
-			if (!ges.aircraft.groundContact) armed = !armed;
+			if (!gefs.aircraft.groundContact) armed = !armed;
 			else armed = false;
 			checkStatus();
 		}
@@ -138,7 +137,7 @@
 	var oldLoad = Aircraft.prototype.load;
 	Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
 		// Obtains the old aircraft parts {Object} before loading
-		var oldParts = ges.aircraft.object3d._children;
+		var oldParts = gefs.aircraft.object3d._children;
 
 		// Calls the original function to load an aircraft
 		oldLoad.call(this, aircraftName, coordinates, bJustReload);
@@ -147,7 +146,7 @@
 		// with the current parts. It's crucial to set on a timer because 
 		// it takes time for the models to load completely
 		var timer = setInterval(function () {
-			if (oldParts !== ges.aircraft.object3d._children) {
+			if (oldParts !== gefs.aircraft.object3d._children) {
 				clearInterval(timer);
 				armed = false;
 				checkStatus();

@@ -30,7 +30,7 @@
 	/**
  	 * Checks for spoilers arming status, set on a timer
  	 */
-	function armSpoilers() {
+	function armSpoilers () {
 		// The current "At Ground Level" of the plane
 		var AGL = gefs.aircraft.animationValue.altitude - gefs.groundElevation * metersToFeet;
 
@@ -52,7 +52,7 @@
 	/**
 	 * Checks for arming status and controls the timer
 	 */
-	function checkStatus() {
+	function checkStatus () {
 		// If the plane does not have spoilers
 		if (!instruments.list.spoilers) {
 			disable();
@@ -72,7 +72,7 @@
  	 * Updates the button to show armed status
  	 * Enables arming if eligible
  	 */
-	function update() {
+	function update () {
 		if (!enabled) {
 			enabled = true;
 			$('.spoilers-arming')
@@ -91,7 +91,7 @@
 	/**
 	 * Disables arming
 	 */
-	function disable() {
+	function disable () {
 		enabled = false;
 		armed = false;
 		if ($('.spoilers-arming').hasClass('btn-default')) 

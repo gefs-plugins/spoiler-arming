@@ -4,13 +4,13 @@
 // @namespace GEFS-Plugins
 // @match http://*.gefs-online.com/gefs.php*
 // @run-at document-end
-// @version 0.2.0
+// @version 0.3.0
 // @grant none
 // ==/UserScript==
 
 (function (init, ui) {
 	// Inits UI elements
-	ui.appendTo('.gefs-f-standard');
+	ui.appendTo('.gefs-ui-bottom');
 
 	// Checks if the game completes loading
 	// and if all needed objects are created
@@ -26,6 +26,7 @@
 	var enabled = true;	// If spoilers are eligible to be armed
 	var targetAlt = 4000; // The AGL altitude which the timer will update faster
 	var spoilersTimer; // The timer to check for groundContact
+	var button = $('.spoilers-arming-button');
 
 	/**
  	 * Checks for spoilers arming status, set on a timer
@@ -75,16 +76,10 @@
 	function update () {
 		if (!enabled) {
 			enabled = true;
-			$('.spoilers-arming')
-				.removeClass('btn-danger')
-				.addClass('btn-default');
+			button.removeAttr('disabled');
 		} else {
-			if (armed) $('.spoilers-arming')
-				.removeClass('btn-default')
-				.addClass('btn-success');
-			else $('.spoilers-arming')
-				.removeClass('btn-success')
-				.addClass('btn-default');
+			if (armed) button.addClass('mdl-button--accent');
+			else button.removeClass('mdl-button--accent');
 		}
 	}
 
@@ -94,14 +89,8 @@
 	function disable () {
 		enabled = false;
 		armed = false;
-		if ($('.spoilers-arming').hasClass('btn-default')) 
-			$('.spoilers-arming')
-				.removeClass('btn-default')
-				.addClass('btn-danger');
-		if ($('.spoilers-arming').hasClass('btn-success')) 
-			$('.spoilers-arming')
-				.removeClass('btn-success')
-				.addClass('btn-danger');
+		if (!button.is(':disabled'))
+			button.attr('disabled', true);
 	}
 
 	/**
@@ -114,7 +103,7 @@
 	/**
 	 * Checks for "click" on the spoilers arming button
  	 */
-	$('.spoilers-arming').click(function () {
+	button.click(function () {
 		if (enabled) {
 			if (!gefs.aircraft.groundContact) armed = !armed;
 			else armed = false;
@@ -127,7 +116,7 @@
 	 */
 	$(document).keydown(function (event) {
 		if (event.which === 220 || event.keyCode === 220)
-			$('.spoilers-arming').click();
+			button.click();
 	});
 
 	/**
@@ -158,19 +147,11 @@
  	 * Spoilers arming UI
 	 */
 	$('<div>')
-		.addClass('setup-section')
-		.css('padding-bottom', '0px')
-		.append($('<div>')
-			.addClass('input-prepend input-append')
-			.css('margin-bottom', '4px')
-			.append($('<span>')
-				.addClass('add-on')
-				.text('Spoilers') 
-				,	$('<button>')
-				.addClass('btn btn-default spoilers-arming')
-				.attr('type', 'button')
-				.css('height', '30px')
-				.css('width', '30px')
-			)
+		.addClass('spoilers-arming-section gefs-f-standard-ui')
+		.css('display', 'inline')
+		.append($('<button>')
+			.addClass('spoilers-arming-button mdl-button mdl-js-button mdl-button--raised')
+			.attr('data-upgraded', ',MaterialButton')
+			.text('Spoilers')
 		)
 );

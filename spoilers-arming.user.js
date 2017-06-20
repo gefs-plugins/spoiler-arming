@@ -1,22 +1,22 @@
 // ==UserScript==
-// @name GEFS-Online Spoilers Arming
+// @name GeoFS Spoilers Arming
 // @description This extension (by Harry Xue) allows the user to arm the spoilers before landing.
-// @namespace GEFS-Plugins
-// @match http://*.gefs-online.com/gefs.php*
+// @namespace GeoFS-Plugins
+// @match http://*/geofs.php*
 // @run-at document-end
-// @version 0.3.0
+// @version 0.4.0
 // @grant none
 // ==/UserScript==
 
 (function (init, ui) {
 	// Inits UI elements
-	ui.appendTo('.gefs-ui-bottom');
+	ui.appendTo('.geofs-ui-bottom');
 
 	// Checks if the game completes loading
 	// and if all needed objects are created
 	// Inits arming
 	var timer = setInterval(function () {
-		if (window.gefs && gefs.aircraft && gefs.aircraft.object3d) {
+		if (window.geofs && geofs.aircraft && geofs.aircraft.instance && geofs.aircraft.instance.object3d) {
 			clearInterval(timer);
 			init();
 		}
@@ -33,14 +33,14 @@
  	 */
 	function armSpoilers () {
 		// The current "At Ground Level" of the plane
-		var AGL = gefs.aircraft.animationValue.altitude - gefs.groundElevation * metersToFeet;
+		var AGL = geofs.aircraft.instance.animationValue.altitude - geofs.groundElevation * METERS_TO_FEET;
 
-		if (gefs.aircraft.groundContact && gefs.aircraft.animationValue.airbrakesPosition === 0) {
+		if (geofs.aircraft.instance.groundContact && geofs.aircraft.instance.animationValue.airbrakesPosition === 0) {
 			controls.setters.setAirbrakes.set();
 			armed = false;
 			checkStatus();
 			return;
-		} else if (gefs.aircraft.groundContact) {
+		} else if (geofs.aircraft.instance.groundContact) {
 			armed = false;
 			checkStatus();
 			return;
@@ -49,7 +49,7 @@
 		if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
 		else spoilersTimer = setInterval(armSpoilers, 30000);
 	}
-	
+
 	/**
 	 * Checks for arming status and controls the timer
 	 */
@@ -77,6 +77,7 @@
 		if (!enabled) {
 			enabled = true;
 			button.removeAttr('disabled');
+			button.show();
 		} else {
 			if (armed) button.addClass('mdl-button--accent');
 			else button.removeClass('mdl-button--accent');
@@ -89,8 +90,8 @@
 	function disable () {
 		enabled = false;
 		armed = false;
-		if (!button.is(':disabled'))
-			button.attr('disabled', true);
+		if (!button.is(':disabled')) button.attr('disabled', true);
+		button.hide();
 	}
 
 	/**
@@ -105,7 +106,7 @@
  	 */
 	button.click(function () {
 		if (enabled) {
-			if (!gefs.aircraft.groundContact) armed = !armed;
+			if (!geofs.aircraft.instance.groundContact) armed = !armed;
 			else armed = false;
 			checkStatus();
 		}
@@ -120,38 +121,40 @@
 	});
 
 	/**
- 	 * Redefines load function of Aircraft so that it 
+ 	 * Redefines load function of Aircraft so that it
  	 * checks for availability on aircraft load
 	 */
-	var oldLoad = Aircraft.prototype.load;
-	Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
+	var oldLoad = geofs.aircraft.Aircraft.prototype.load;
+	geofs.aircraft.Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
 		// Obtains the old aircraft parts {Object} before loading
-		var oldParts = gefs.aircraft.object3d._children;
+		var oldParts = geofs.aircraft.instance.object3d._children;
 
 		// Calls the original function to load an aircraft
 		oldLoad.call(this, aircraftName, coordinates, bJustReload);
 
-		// Checks if the old parts refer to a different object compared 
-		// with the current parts. It's crucial to set on a timer because 
+		// Checks if the old parts refer to a different object compared
+		// with the current parts. It's crucial to set on a timer because
 		// it takes time for the models to load completely
 		var timer = setInterval(function () {
-			if (oldParts !== gefs.aircraft.object3d._children) {
+			if (oldParts !== geofs.aircraft.instance.object3d._children) {
 				clearInterval(timer);
 				armed = false;
 				checkStatus();
 			}
 		}, 16);
 	};
-},	
+
+	// Upgrades DOM element
+	componentHandler.upgradeDom();
+},
 	/**
  	 * Spoilers arming UI
 	 */
 	$('<div>')
-		.addClass('spoilers-arming-section gefs-f-standard-ui')
+		.addClass('spoilers-arming-section geofs-f-standard-ui')
 		.css('display', 'inline')
 		.append($('<button>')
 			.addClass('spoilers-arming-button mdl-button mdl-js-button mdl-button--raised')
-			.attr('data-upgraded', ',MaterialButton')
 			.text('Spoilers')
 		)
 );

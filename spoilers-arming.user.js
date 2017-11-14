@@ -8,10 +8,7 @@
 // @grant none
 // ==/UserScript==
 
-(function (init, ui) {
-	// Inits UI elements
-	ui.appendTo('.geofs-ui-bottom');
-
+(function (init) {
 	// Checks if the game completes loading
 	// and if all needed objects are created
 	// Inits arming
@@ -22,139 +19,102 @@
 		}
 	}, 16);
 })(function () {
-	var armed = false; // If spoilers are armed
-	var enabled = true;	// If spoilers are eligible to be armed
-	var targetAlt = 4000; // The AGL altitude which the timer will update faster
+	var targetAltLo = 100; // The AGL altitudes which the timer will update faster
+	var targetAltHi = 4000;
 	var spoilersTimer; // The timer to check for groundContact
-	var button = $('.spoilers-arming-button');
+	var aircraft = geofs.aircraft.instance;
+
+	var _armed = false;
+	var armed = function (bool) {
+		if (arguments.length === 0) {
+			if (aircraft.animationValue.airbrakesTarget !== 0) _armed = false;
+			if (aircraft.animationValue.airbrakesPosition !== 0) return false;
+			return _armed;
+		}
+		if (enabled()) _armed = !!bool;
+	};
+
+	var _enabled = true;
+	var enabled = function (bool) {
+		if (arguments.length === 0) return _enabled;
+		if (!bool) armed(false);
+		_enabled = !!bool;
+	};
+
+	// Instrument overlay definition
+	instruments.definitions.spoilersArming = {
+		overlay: {
+			url: PAGE_PATH + 'local/spoilers-arm.png',
+			alignment: { x: 'right', y: 'bottom' },
+			size: { x: 100, y: 21 },
+			position: { x: 20, y: 195 },
+			anchor: { x: 100, y: 0 },
+			rescale: true,
+			rescalePosition: true,
+			animations: [{
+				type: 'show',
+				value: armed,
+				when: [ true ]
+			}]
+		}
+	};
+
+	$(document)
+		.off('keydown', controls.keyDown)
+		.keydown(function (event) {
+			if (event.shiftKey &&
+				event.which === geofs.preferences.keyboard.keys['Airbrake toggle (on/off)'].keycode) {
+				event.preventDefault();
+				armed(enabled() ? !armed() : false);
+				checkStatus();
+			} else controls.keyDown(event);
+		});
 
 	/**
  	 * Checks for spoilers arming status, set on a timer
  	 */
-	function armSpoilers () {
-		// The current "At Ground Level" of the plane
-		var AGL = geofs.aircraft.instance.animationValue.altitude - geofs.groundElevation * METERS_TO_FEET;
-
-		if (geofs.aircraft.instance.groundContact && geofs.aircraft.instance.animationValue.airbrakesPosition === 0) {
-			controls.setters.setAirbrakes.set();
-			armed = false;
-			checkStatus();
-			return;
-		} else if (geofs.aircraft.instance.groundContact) {
-			armed = false;
-			checkStatus();
-			return;
+	function armSpoilers () { // @IDEA Use maxAngularVRatio instead? What is the threshold?
+		if (aircraft.groundContact) {
+			if (aircraft.animationValue.airbrakesTarget === 0) controls.setters.setAirbrakes.set();
+			armed(false);
 		}
-		clearInterval(spoilersTimer);
-		if (AGL <= targetAlt) spoilersTimer = setInterval(armSpoilers, 1500);
-		else spoilersTimer = setInterval(armSpoilers, 30000);
+
+		checkStatus();
 	}
 
 	/**
 	 * Checks for arming status and controls the timer
 	 */
 	function checkStatus () {
-		// If the plane does not have spoilers
-		if (!instruments.list.spoilers) {
-			disable();
-			clearInterval(spoilersTimer);
-		} else {
-			if (armed) {
-				update();
-				spoilersTimer = setInterval(armSpoilers, 1500);
-			} else {
-				update();
-				clearInterval(spoilersTimer);
-			}
+		clearInterval(spoilersTimer);
+
+		// The current "At Ground Level" of the plane
+		var AGL = aircraft.animationValue.altitude - geofs.groundElevation * METERS_TO_FEET;
+
+		if (armed()) {
+			if (AGL < targetAltLo) spoilersTimer = setInterval(armSpoilers, 100);
+			else if (AGL < targetAltHi) spoilersTimer = setInterval(armSpoilers, 1500);
+			else spoilersTimer = setInterval(armSpoilers, 30000);
 		}
 	}
 
-	/**
- 	 * Updates the button to show armed status
- 	 * Enables arming if eligible
- 	 */
-	function update () {
-		if (!enabled) {
-			enabled = true;
-			button.removeAttr('disabled');
-			button.show();
-		} else {
-			if (armed) button.addClass('mdl-button--accent');
-			else button.removeClass('mdl-button--accent');
-		}
-	}
+	// Redefines instrument init to check if aircraft has spoilers to arm
+	var oldInit = instruments.init;
+	instruments.init = function (instrumentList) {
+		if (typeof instrumentList.spoilers !== 'undefined') {
+			armed(false);
+			enabled(true);
+			$.extend(instrumentList, { spoilersArming: instrumentList.spoilers });
+		} else enabled(false);
 
-	/**
-	 * Disables arming
-	 */
-	function disable () {
-		enabled = false;
-		armed = false;
-		if (!button.is(':disabled')) button.attr('disabled', true);
-		button.hide();
-	}
+		oldInit(instrumentList);
+	};
 
 	/**
 	 * Checks for arming eligibility after page load
  	 */
 	$(function () {
+		instruments.init(aircraft.setup.instruments);
 		checkStatus();
 	});
-
-	/**
-	 * Checks for "click" on the spoilers arming button
- 	 */
-	button.click(function () {
-		if (enabled) {
-			if (!geofs.aircraft.instance.groundContact) armed = !armed;
-			else armed = false;
-			checkStatus();
-		}
-	});
-
-	/**
-	 * Checks for "\" keydown to set spoilers
-	 */
-	$(document).keydown(function (event) {
-		if (event.which === 220 || event.keyCode === 220)
-			button.click();
-	});
-
-	/**
- 	 * Redefines load function of Aircraft so that it
- 	 * checks for availability on aircraft load
-	 */
-	var oldLoad = geofs.aircraft.Aircraft.prototype.load;
-	geofs.aircraft.Aircraft.prototype.load = function (aircraftName, coordinates, bJustReload) {
-		// Obtains the old aircraft parts {Object} before loading
-		var oldParts = geofs.aircraft.instance.object3d._children;
-
-		// Calls the original function to load an aircraft
-		oldLoad.call(this, aircraftName, coordinates, bJustReload);
-
-		// Checks if the old parts refer to a different object compared
-		// with the current parts. It's crucial to set on a timer because
-		// it takes time for the models to load completely
-		var timer = setInterval(function () {
-			if (oldParts !== geofs.aircraft.instance.object3d._children) {
-				clearInterval(timer);
-				armed = false;
-				checkStatus();
-			}
-		}, 16);
-	};
-
-	// Upgrades DOM element
-	componentHandler.upgradeDom();
-},
-	/**
- 	 * Spoilers arming UI
-	 */
-	$('<div>')
-		.addClass('spoilers-arming-section geofs-f-standard-ui')
-		.css('display', 'inline')
-		.append($('<button>')
-			.addClass('spoilers-arming-button mdl-button mdl-js-button mdl-button--raised')
-			.text('Spoilers')
-		)
-);
+});

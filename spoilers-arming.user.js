@@ -10,19 +10,14 @@
 
 (function (init) {
 	// Checks if the game completes loading
-	// and if all needed objects are created
-	// Inits arming
 	var timer = setInterval(function () {
 		if (window.geofs && geofs.aircraft && geofs.aircraft.instance && geofs.aircraft.instance.object3d) {
 			clearInterval(timer);
 			init();
 		}
-	}, 16);
+	}, 100);
 })(function () {
-	var targetAltLo = 100; // The AGL altitudes which the timer will update faster
-	var targetAltHi = 4000;
-	var spoilersTimer; // The timer to check for groundContact
-	var aircraft = geofs.aircraft.instance;
+	var initialWheelAccel, aircraft = geofs.aircraft.instance;
 
 	var _armed = false;
 	var armed = function (bool) {
@@ -41,10 +36,16 @@
 		_enabled = !!bool;
 	};
 
+	// Adds callback after every frame to update spoilersArmed animation value and status
+	geofs.api.addFrameCallback(function () {
+		spoilersArming();
+		geofs.aircraft.instance.animationValue.spoilersArmed = armed();
+	}, 'spoilersArming');
+
 	// Instrument overlay definition
 	instruments.definitions.spoilersArming = {
 		overlay: {
-			url: PAGE_PATH + 'local/spoilers-arm.png',
+			url: 'https://dl.dropboxusercontent.com/s/pjji50e8ogwinmr/spoilers-arm.png',
 			alignment: { x: 'right', y: 'bottom' },
 			size: { x: 100, y: 21 },
 			position: { x: 20, y: 195 },
@@ -53,48 +54,42 @@
 			rescalePosition: true,
 			animations: [{
 				type: 'show',
-				value: armed,
+				value: 'spoilersArmed',
 				when: [ true ]
 			}]
 		}
 	};
 
+	// Sets <Shift> + airbrake toggle key for spoilers arming
 	$(document)
-		.off('keydown', controls.keyDown)
-		.keydown(function (event) {
+		.off('keydown', controls.keydown)
+		.on('keydown', function (event) {
 			if (event.shiftKey &&
 				event.which === geofs.preferences.keyboard.keys['Airbrake toggle (on/off)'].keycode) {
-				event.preventDefault();
 				armed(enabled() ? !armed() : false);
-				checkStatus();
 			} else controls.keyDown(event);
 		});
 
-	/**
- 	 * Checks for spoilers arming status, set on a timer
- 	 */
-	function armSpoilers () { // @IDEA Use maxAngularVRatio instead? What is the threshold?
-		if (aircraft.groundContact) {
-			if (aircraft.animationValue.airbrakesTarget === 0) controls.setters.setAirbrakes.set();
-			armed(false);
+ 	// Checks for spoilers arming status, called at every frame
+	function spoilersArming () {
+		if (!armed()) return;
+		if (!aircraft.groundContact) {
+			initialWheelAccel = undefined;
+			return;
 		}
 
-		checkStatus();
-	}
+		if (aircraft.animationValue.maxAngularVRatio !== 0 && !initialWheelAccel)
+			initialWheelAccel = aircraft.animationValue.maxAngularVRatio;
 
-	/**
-	 * Checks for arming status and controls the timer
-	 */
-	function checkStatus () {
-		clearInterval(spoilersTimer);
+		// Touched down and stablized
+		var tdStable = aircraft.animationValue.maxAngularVRatio !== initialWheelAccel &&
+			initialWheelAccel >= 300 && aircraft.animationValue.maxAngularVRatio >= 2 &&
+			aircraft.animationValue.maxAngularVRatio < 10;
 
-		// The current "At Ground Level" of the plane
-		var AGL = aircraft.animationValue.altitude - geofs.groundElevation * METERS_TO_FEET;
-
-		if (armed()) {
-			if (AGL < targetAltLo) spoilersTimer = setInterval(armSpoilers, 100);
-			else if (AGL < targetAltHi) spoilersTimer = setInterval(armSpoilers, 1500);
-			else spoilersTimer = setInterval(armSpoilers, 30000);
+		if (tdStable) {
+			if (controls.airbrakes.target !== 1) controls.setters.setAirbrakes.set();
+			initialWheelAccel = undefined;
+			armed(false);
 		}
 	}
 
@@ -115,6 +110,5 @@
  	 */
 	$(function () {
 		instruments.init(aircraft.setup.instruments);
-		checkStatus();
 	});
 });

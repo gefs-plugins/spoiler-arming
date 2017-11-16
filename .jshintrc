@@ -1,0 +1,21 @@
+{ "globals":
+  { "geofs": true
+  , "controls": true
+  , "PAGE_PATH": true
+  }
+, "laxcomma": true
+, "laxbreak": true
+, "multistr": true
+, "eqeqeq": true
+, "smarttabs": true
+, "jquery": true
+, "curly": false
+, "browser": true
+, "expr": true
+, "devel": true
+, "debug": true
+, "funcscope": false
+, "unused": true
+, "bitwise": true
+, "-W004": false
+}

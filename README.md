@@ -1,7 +1,7 @@
 # spoiler-arming
-This extension for GEFS Online, a free flight simulator based on the google earth plugin, adds a button on the bottom toolbar that allows you to arm spoilers on approach so they are deployed upon touchdown, just as in real life.
+This extension for GeoFS, a free flight simulator based on the google earth plugin, adds a button on the bottom toolbar that allows you to arm spoilers on approach so they are deployed upon touchdown, just as in real life.
 
-Copyright (c) 2015 Harry Xue
+Copyright (c) 2015-2017 Harry Xue
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

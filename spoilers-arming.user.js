@@ -1,16 +1,17 @@
 // ==UserScript==
-// @name GEFS-Online Spoilers Arming
+// @name GeoFS Spoilers Arming
 // @description This extension (by Harry Xue) allows the user to arm the spoilers before landing.
-// @namespace GEFS-Plugins
-// @match http://*.gefs-online.com/gefs.php*
+// @namespace GeoFS-Plugins
+// @match http://*/geofs.php*
 // @run-at document-end
-// @version 0.3.0
+// @version 0.4.0
 // @grant none
 // ==/UserScript==
 
-/*!
-	Copyright (c) 2015-2016 Harry Xue
-	Licensed under the MIT License
-*/
+/**
+ * @license Spoilers-Arming
+ * Copyright (c) 2015-2017 Harry Xue
+ * Released under the MIT License (MIT)
+ */
 
-!function(t,a){a.appendTo(".gefs-ui-bottom");var e=setInterval(function(){window.gefs&&gefs.aircraft&&gefs.aircraft.object3d&&(clearInterval(e),t())},16)}(function(){function t(){var e=gefs.aircraft.animationValue.altitude-gefs.groundElevation*metersToFeet;return gefs.aircraft.groundContact&&0===gefs.aircraft.animationValue.airbrakesPosition?(controls.setters.setAirbrakes.set(),i=!1,void a()):gefs.aircraft.groundContact?(i=!1,void a()):(clearInterval(n),void(n=s>=e?setInterval(t,1500):setInterval(t,3e4)))}function a(){instruments.list.spoilers?i?(e(),n=setInterval(t,1500)):(e(),clearInterval(n)):(r(),clearInterval(n))}function e(){o?i?c.addClass("mdl-button--accent"):c.removeClass("mdl-button--accent"):(o=!0,c.removeAttr("disabled"))}function r(){o=!1,i=!1,c.is(":disabled")||c.attr("disabled",!0)}var n,i=!1,o=!0,s=4e3,c=$(".spoilers-arming-button");$(function(){a()}),c.click(function(){o&&(i=gefs.aircraft.groundContact?!1:!i,a())}),$(document).keydown(function(t){(220===t.which||220===t.keyCode)&&c.click()});var l=Aircraft.prototype.load;Aircraft.prototype.load=function(t,e,r){var n=gefs.aircraft.object3d._children;l.call(this,t,e,r);var o=setInterval(function(){n!==gefs.aircraft.object3d._children&&(clearInterval(o),i=!1,a())},16)}},$("<div>").addClass("spoilers-arming-section gefs-f-standard-ui").css("display","inline").append($("<button>").addClass("spoilers-arming-button mdl-button mdl-js-button mdl-button--raised").attr("data-upgraded",",MaterialButton").text("Spoilers")));
+!function(n){var i=setInterval(function(){window.geofs&&geofs.aircraft&&geofs.aircraft.instance&&geofs.aircraft.instance.object3d&&(clearInterval(i),n())},100)}(function(){function n(){t()&&(e.groundContact?(0===e.animationValue.maxAngularVRatio||i||(i=e.animationValue.maxAngularVRatio),e.animationValue.maxAngularVRatio!==i&&i>=300&&e.animationValue.maxAngularVRatio>=2&&e.animationValue.maxAngularVRatio<10&&(1!==controls.airbrakes.target&&controls.setters.setAirbrakes.set(),i=void 0,t(!1))):i=void 0)}var i,e=geofs.aircraft.instance,a=!1,t=function(n){if(0===arguments.length)return 0!==e.animationValue.airbrakesTarget&&(a=!1),0===e.animationValue.airbrakesPosition&&a;r()&&(a=!!n)},o=!0,r=function(n){if(0===arguments.length)return o;n||t(!1),o=!!n};geofs.api.addFrameCallback(function(){n(),geofs.aircraft.instance.animationValue.spoilersArmed=t()},"spoilersArming"),instruments.definitions.spoilersArming={overlay:{url:"https://dl.dropboxusercontent.com/s/pjji50e8ogwinmr/spoilers-arm.png",alignment:{x:"right",y:"bottom"},size:{x:100,y:21},position:{x:20,y:195},anchor:{x:100,y:0},rescale:!0,rescalePosition:!0,animations:[{type:"show",value:"spoilersArmed",when:[!0]}]}},$(document).off("keydown",controls.keydown).on("keydown",function(n){n.shiftKey&&n.which===geofs.preferences.keyboard.keys["Airbrake toggle (on/off)"].keycode?t(!!r()&&!t()):controls.keyDown(n)});var s=instruments.init;instruments.init=function(n){void 0!==n.spoilers?(t(!1),r(!0),$.extend(n,{spoilersArming:n.spoilers})):r(!1),s(n)},$(function(){instruments.init(e.setup.instruments)})});

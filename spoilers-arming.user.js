@@ -45,7 +45,7 @@
 	// Instrument overlay definition
 	instruments.definitions.spoilersArming = {
 		overlay: {
-			url: 'https://dl.dropboxusercontent.com/s/pjji50e8ogwinmr/spoilers-arm.png',
+			url: PAGE_PATH + 'images/hx/spoilers-arm.png',
 			alignment: { x: 'right', y: 'bottom' },
 			size: { x: 100, y: 21 },
 			position: { x: 20, y: 195 },

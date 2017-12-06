@@ -4,7 +4,7 @@
 // @namespace GeoFS-Plugins
 // @match http://*/geofs.php*
 // @run-at document-end
-// @version 0.4.0
+// @version 0.4.1
 // @grant none
 // ==/UserScript==
 
@@ -61,14 +61,13 @@
 	};
 
 	// Sets <Shift> + airbrake toggle key for spoilers arming
-	$(document)
-		.off('keydown', controls.keyDown)
-		.on('keydown', function (event) {
-			if (event.shiftKey &&
-				event.which === geofs.preferences.keyboard.keys['Airbrake toggle (on/off)'].keycode) {
-				armed(enabled() ? !armed() : false);
-			} else controls.keyDown(event);
-		});
+	var keydownTrigger = controls.keyDown;
+	controls.keyDown = function (event) {
+		if (event.shiftKey &&
+			event.which === geofs.preferences.keyboard.keys['Airbrake toggle (on/off)'].keycode) {
+			armed(enabled() ? !armed() : false);
+		} else keydownTrigger(event);
+	};
 
  	// Checks for spoilers arming status, called at every frame
 	function spoilersArming () {

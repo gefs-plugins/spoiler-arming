@@ -37,10 +37,7 @@
 	};
 
 	// Adds callback after every frame to update spoilersArmed animation value and status
-	geofs.api.addFrameCallback(function () {
-		spoilersArming();
-		geofs.aircraft.instance.animationValue.spoilersArmed = armed();
-	}, 'spoilersArming');
+	geofs.api.addFrameCallback(spoilersArming, 'spoilersArming');
 
 	// Instrument overlay definition
 	instruments.definitions.spoilersArming = {
@@ -71,8 +68,10 @@
 
  	// Checks for spoilers arming status, called at every frame
 	function spoilersArming () {
-		if (!armed()) return;
-		if (!aircraft.groundContact) {
+		// Sets animation value
+		geofs.aircraft.instance.animationValue.spoilersArmed = armed();
+
+		if (!armed() || !aircraft.groundContact) {
 			initialWheelAccel = undefined;
 			return;
 		}
@@ -98,15 +97,13 @@
 		if (typeof instrumentList.spoilers !== 'undefined') {
 			armed(false);
 			enabled(true);
-			$.extend(instrumentList, { spoilersArming: instrumentList.spoilers });
+			instrumentList.spoilersArming = instrumentList.spoilers;
 		} else enabled(false);
 
 		oldInit(instrumentList);
 	};
 
-	/**
-	 * Checks for arming eligibility after page load
- 	 */
+	// Checks for arming eligibility after page load
 	$(function () {
 		instruments.init(aircraft.setup.instruments);
 	});
